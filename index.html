@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>주담대 원리금 계산기</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>주담대 원리금 계산기</h1>
+      <p class="sub">상환 방식별 월 상환액과 상환 스케줄을 계산합니다.</p>
+    </header>
+
+    <form id="loan-form" class="card" novalidate>
+      <div class="grid">
+        <label>
+          <span>대출 금액 (만원)</span>
+          <input type="number" id="principal" min="1" step="1" value="30000" required>
+        </label>
+        <label>
+          <span>연 이자율 (%)</span>
+          <input type="number" id="rate" min="0" max="30" step="0.01" value="4.0" required>
+        </label>
+        <label>
+          <span>대출 기간 (년)</span>
+          <input type="number" id="years" min="1" max="50" step="1" value="30" required>
+        </label>
+        <label>
+          <span>거치 기간 (년)</span>
+          <input type="number" id="grace" min="0" max="10" step="1" value="0">
+        </label>
+      </div>
+
+      <fieldset class="methods">
+        <legend>상환 방식</legend>
+        <label><input type="radio" name="method" value="equal-payment" checked> 원리금균등</label>
+        <label><input type="radio" name="method" value="equal-principal"> 원금균등</label>
+        <label><input type="radio" name="method" value="bullet"> 만기일시</label>
+      </fieldset>
+
+      <p id="error" class="error" hidden></p>
+      <button type="submit">계산하기</button>
+    </form>
+
+    <section id="result" hidden>
+      <div class="summary">
+        <div class="stat"><span>첫 달 상환액</span><strong id="first-payment"></strong></div>
+        <div class="stat"><span>총 이자</span><strong id="total-interest"></strong></div>
+        <div class="stat"><span>총 상환액</span><strong id="total-payment"></strong></div>
+      </div>
+
+      <div class="card">
+        <h2>월별 상환 스케줄</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>회차</th><th>상환액</th><th>원금</th><th>이자</th><th>잔액</th></tr>
+            </thead>
+            <tbody id="schedule"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
