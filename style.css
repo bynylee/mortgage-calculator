@@ -49,14 +49,17 @@ label span {
   margin-bottom: 4px;
 }
 
-input[type="number"] {
+input[type="number"],
+input.money {
   width: 100%;
   padding: 10px 12px;
   font-size: 1rem;
   border: 1px solid var(--border);
   border-radius: 8px;
 }
-input[type="number"]:focus { outline: 2px solid var(--accent); border-color: transparent; }
+input.money { text-align: right; font-variant-numeric: tabular-nums; }
+input[type="number"]:focus,
+input.money:focus { outline: 2px solid var(--accent); border-color: transparent; }
 
 .methods {
   border: none;

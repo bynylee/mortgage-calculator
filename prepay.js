@@ -135,7 +135,7 @@ function koreanWon(n) {
 
 function updateHints() {
   document.querySelectorAll('.hint[data-for]').forEach((el) => {
-    el.textContent = koreanWon(Number($(el.dataset.for).value));
+    el.textContent = koreanWon(money(el.dataset.for));
   });
 }
 
@@ -144,13 +144,13 @@ function toISO(d) {
 }
 
 function runPrepay() {
-  const balance = Number($('pp-balance').value);
+  const balance = money('pp-balance');
   const rate = Number($('pp-rate').value);
-  const original = Number($('pp-original').value) || 0;
+  const original = money('pp-original');
   const start = parseDate($('pp-start').value);
   const maturity = parseDate($('pp-maturity').value);
   const base = parseDate($('pp-date').value);
-  const amount = Number($('pp-amount').value);
+  const amount = money('pp-amount');
   const feeRate = Number($('pp-fee').value) || 0;
   const mode = document.querySelector('input[name="pp-mode"]:checked').value;
 
@@ -217,7 +217,7 @@ function runPrepay() {
       const p = simulatePrepay({ balance, rate, months, amount: a, mode: 'keep-payment', fee: f });
       const cls = a === amount ? ' class="current"' : '';
       return (
-        `<tr${cls}><td>${koreanWon(a)}</td><td>${won(t.newPayment)}</td><td>${won(t.saved)}</td>` +
+        `<tr${cls}><td>${won(a)}</td><td>${won(t.newPayment)}</td><td>${won(t.saved)}</td>` +
         `<td>${p.newMonths}회</td><td>${months - p.newMonths}개월</td><td>${won(p.saved)}</td></tr>`
       );
     })
@@ -248,7 +248,7 @@ document.querySelectorAll('.tab').forEach((btn) => {
 });
 
 $('pp-date').value = toISO(new Date());
-document.querySelectorAll('#prepay-form input[type="number"]').forEach((el) => el.addEventListener('input', updateHints));
+document.querySelectorAll('#prepay-form input.money').forEach((el) => el.addEventListener('input', updateHints));
 updateHints();
 
 $('prepay-form').addEventListener('submit', (e) => {

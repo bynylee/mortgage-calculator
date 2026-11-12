@@ -57,10 +57,30 @@ const won = (n) => Math.round(n).toLocaleString('ko-KR') + '원';
 
 const $ = (id) => document.getElementById(id);
 
+/** 쉼표가 들어간 금액 입력값 → 숫자 */
+const money = (id) => Number($(id).value.replace(/[^\d]/g, ''));
+
+/** 금액 입력칸: 입력 중 000,000,000 형식으로 쉼표 자동 삽입 (커서 위치 유지) */
+function formatMoneyInput(el) {
+  const caret = el.selectionStart ?? el.value.length;
+  const digitsBefore = el.value.slice(0, caret).replace(/[^\d]/g, '').length;
+  const digits = el.value.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '');
+  el.value = digits ? Number(digits).toLocaleString('ko-KR') : '';
+  let pos = 0;
+  for (let seen = 0; pos < el.value.length && seen < digitsBefore; pos++) {
+    if (/\d/.test(el.value[pos])) seen++;
+  }
+  el.setSelectionRange(pos, pos);
+}
+
+document.querySelectorAll('input.money').forEach((el) => {
+  el.addEventListener('input', () => formatMoneyInput(el));
+});
+
 $('loan-form').addEventListener('submit', (e) => {
   e.preventDefault();
 
-  const principal = Number($('principal').value) * 10000;
+  const principal = money('principal') * 10000;
   const rate = Number($('rate').value);
   const years = Number($('years').value);
   const graceYears = Number($('grace').value) || 0;
