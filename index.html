@@ -10,60 +10,179 @@
   <main class="container">
     <header>
       <h1>주담대 원리금 계산기</h1>
-      <p class="sub">상환 방식별 월 상환액과 상환 스케줄을 계산합니다.</p>
+      <p class="sub">중도상환 효과와 상환 방식별 월 상환액을 계산합니다.</p>
     </header>
 
-    <form id="loan-form" class="card" novalidate>
-      <div class="grid">
-        <label>
-          <span>대출 금액 (만원)</span>
-          <input type="number" id="principal" min="1" step="1" value="30000" required>
-        </label>
-        <label>
-          <span>연 이자율 (%)</span>
-          <input type="number" id="rate" min="0" max="30" step="0.01" value="4.0" required>
-        </label>
-        <label>
-          <span>대출 기간 (년)</span>
-          <input type="number" id="years" min="1" max="50" step="1" value="30" required>
-        </label>
-        <label>
-          <span>거치 기간 (년)</span>
-          <input type="number" id="grace" min="0" max="10" step="1" value="0">
-        </label>
-      </div>
+    <nav class="tabs" role="tablist">
+      <button type="button" class="tab active" data-tab="prepay" role="tab">중도상환 계산</button>
+      <button type="button" class="tab" data-tab="new" role="tab">신규 대출 계산</button>
+    </nav>
 
-      <fieldset class="methods">
-        <legend>상환 방식</legend>
-        <label><input type="radio" name="method" value="equal-payment" checked> 원리금균등</label>
-        <label><input type="radio" name="method" value="equal-principal"> 원금균등</label>
-        <label><input type="radio" name="method" value="bullet"> 만기일시</label>
-      </fieldset>
-
-      <p id="error" class="error" hidden></p>
-      <button type="submit">계산하기</button>
-    </form>
-
-    <section id="result" hidden>
-      <div class="summary">
-        <div class="stat"><span>첫 달 상환액</span><strong id="first-payment"></strong></div>
-        <div class="stat"><span>총 이자</span><strong id="total-interest"></strong></div>
-        <div class="stat"><span>총 상환액</span><strong id="total-payment"></strong></div>
-      </div>
-
-      <div class="card">
-        <h2>월별 상환 스케줄</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr><th>회차</th><th>상환액</th><th>원금</th><th>이자</th><th>잔액</th></tr>
-            </thead>
-            <tbody id="schedule"></tbody>
-          </table>
+    <!-- 중도상환 계산 -->
+    <section id="tab-prepay" class="tab-panel">
+      <form id="prepay-form" class="card" novalidate>
+        <h2>현재 대출 정보</h2>
+        <div class="grid">
+          <label>
+            <span>현재 대출 잔액 (원)</span>
+            <input type="number" id="pp-balance" min="1" step="1" value="433086594" required>
+            <small class="hint" data-for="pp-balance"></small>
+          </label>
+          <label>
+            <span>연 이자율 (%)</span>
+            <input type="number" id="pp-rate" min="0" max="30" step="0.001" value="3.932" required>
+          </label>
+          <label>
+            <span>최초 대출금액 (원)</span>
+            <input type="number" id="pp-original" min="0" step="1" value="472000000">
+            <small class="hint" data-for="pp-original"></small>
+          </label>
+          <label>
+            <span>대출 시작일</span>
+            <input type="date" id="pp-start" value="2024-01-05">
+          </label>
+          <label>
+            <span>만기일</span>
+            <input type="date" id="pp-maturity" value="2074-01-05" required>
+          </label>
+          <label>
+            <span>중도상환일 (기준일)</span>
+            <input type="date" id="pp-date" required>
+          </label>
         </div>
-      </div>
+
+        <h2 class="mt">중도상환</h2>
+        <div class="grid">
+          <label>
+            <span>중도상환 금액 (원)</span>
+            <input type="number" id="pp-amount" min="1" step="1" value="10000000" required>
+            <small class="hint" data-for="pp-amount"></small>
+          </label>
+          <label>
+            <span>중도상환수수료율 (%)</span>
+            <input type="number" id="pp-fee" min="0" max="5" step="0.01" value="0">
+          </label>
+        </div>
+
+        <fieldset class="methods">
+          <legend>상환 후 방식</legend>
+          <label><input type="radio" name="pp-mode" value="keep-term" checked> 만기 유지 (월 납입액 감소)</label>
+          <label><input type="radio" name="pp-mode" value="keep-payment"> 월 납입액 유지 (만기 단축)</label>
+        </fieldset>
+
+        <p id="pp-error" class="error" hidden></p>
+        <button type="submit">계산하기</button>
+      </form>
+
+      <section id="pp-result" hidden>
+        <p id="pp-status" class="status"></p>
+
+        <div class="summary">
+          <div class="stat"><span>상환 후 월 납입액</span><strong id="pp-new-payment"></strong><em id="pp-new-payment-diff"></em></div>
+          <div class="stat"><span>남은 회차</span><strong id="pp-new-months"></strong><em id="pp-new-months-diff"></em></div>
+          <div class="stat highlight"><span>이자 절감액 (수수료 차감)</span><strong id="pp-saved"></strong></div>
+        </div>
+
+        <div class="card">
+          <h2>중도상환 전후 비교</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>항목</th><th>현재</th><th>중도상환 후</th><th>차이</th></tr></thead>
+              <tbody id="pp-compare"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>상환 금액별 비교</h2>
+          <div class="table-wrap short">
+            <table>
+              <thead>
+                <tr>
+                  <th rowspan="2">중도상환액</th>
+                  <th colspan="2">만기 유지</th>
+                  <th colspan="3">월 납입액 유지</th>
+                </tr>
+                <tr><th>월 납입액</th><th>이자 절감</th><th>남은 회차</th><th>단축</th><th>이자 절감</th></tr>
+              </thead>
+              <tbody id="pp-scenarios"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>상환 후 월별 스케줄</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>회차</th><th>납입일</th><th>상환액</th><th>원금</th><th>이자</th><th>잔액</th></tr></thead>
+              <tbody id="pp-schedule"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <p class="note">
+          ※ 중도상환일에 그 달 정기 납입을 마친 직후 상환한다고 가정했습니다. 이자는 월 단위(연 이자율 ÷ 12)로 계산합니다.
+          은행은 일할 이자와 원 단위 절사를 적용하므로 실제 금액과 소폭 차이가 날 수 있습니다.
+          중도상환수수료는 "상환액 × 수수료율 × 3년 중 남은 일수 ÷ 3년"으로 계산합니다(대출 시작 3년 이후 면제).
+        </p>
+      </section>
+    </section>
+
+    <!-- 신규 대출 계산 -->
+    <section id="tab-new" class="tab-panel" hidden>
+      <form id="loan-form" class="card" novalidate>
+        <div class="grid">
+          <label>
+            <span>대출 금액 (만원)</span>
+            <input type="number" id="principal" min="1" step="1" value="30000" required>
+          </label>
+          <label>
+            <span>연 이자율 (%)</span>
+            <input type="number" id="rate" min="0" max="30" step="0.01" value="4.0" required>
+          </label>
+          <label>
+            <span>대출 기간 (년)</span>
+            <input type="number" id="years" min="1" max="50" step="1" value="30" required>
+          </label>
+          <label>
+            <span>거치 기간 (년)</span>
+            <input type="number" id="grace" min="0" max="10" step="1" value="0">
+          </label>
+        </div>
+
+        <fieldset class="methods">
+          <legend>상환 방식</legend>
+          <label><input type="radio" name="method" value="equal-payment" checked> 원리금균등</label>
+          <label><input type="radio" name="method" value="equal-principal"> 원금균등</label>
+          <label><input type="radio" name="method" value="bullet"> 만기일시</label>
+        </fieldset>
+
+        <p id="error" class="error" hidden></p>
+        <button type="submit">계산하기</button>
+      </form>
+
+      <section id="result" hidden>
+        <div class="summary">
+          <div class="stat"><span>첫 달 상환액</span><strong id="first-payment"></strong></div>
+          <div class="stat"><span>총 이자</span><strong id="total-interest"></strong></div>
+          <div class="stat"><span>총 상환액</span><strong id="total-payment"></strong></div>
+        </div>
+
+        <div class="card">
+          <h2>월별 상환 스케줄</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>회차</th><th>상환액</th><th>원금</th><th>이자</th><th>잔액</th></tr>
+              </thead>
+              <tbody id="schedule"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </section>
   </main>
   <script src="app.js"></script>
+  <script src="prepay.js"></script>
 </body>
 </html>
